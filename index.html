@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iZent Movies & Cinema - Watch Any YouTube Video In-Page with Cohere AI</title>
+  <meta name="description" content="Stream and watch any YouTube video seamlessly in high-definition without leaving the page. Powered by YouTube Data API v3 and Cohere AI for instant video summaries, companion chat, critic reviews, and semantic mood search.">
+  <meta name="keywords" content="YouTube player, watch online, movie trailers, streaming, cinema mode, in-page video player, iZent movies, Cohere AI video assistant">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+  <!-- Google Fonts: Syne & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Google AdSense Main Library -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9444948713845341"
+     crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="style.css?v=2.0.3">
+</head>
+<body class="theme-dark">
+  <!-- Cinema Dimmer Backdrop (Lights Off Mode) -->
+  <div id="cinemaDimmer" class="cinema-dimmer" aria-hidden="true"></div>
+
+  <!-- Main App Shell -->
+  <div class="app-wrapper">
+
+    <!-- Top Navigation Bar -->
+    <header class="site-header" id="siteHeader">
+      <div class="header-container">
+        <!-- Brand Logo -->
+        <a href="#" class="brand-logo" id="brandLogo" title="iZent Cinema - Home">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3" fill="url(#brandGrad)"></polygon>
+              <defs>
+                <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff0055" />
+                  <stop offset="100%" stop-color="#7928ca" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">iZENT</span>
+            <span class="logo-badge">CINEMA • AI</span>
+          </div>
+        </a>
+
+        <!-- Global Search Bar with AI Mood Search Trigger -->
+        <form class="search-form" id="searchForm" role="search">
+          <div class="search-input-wrapper">
+            <span class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input" 
+              placeholder="Search movies, trailers, songs or paste YouTube link..." 
+              autocomplete="off"
+              aria-label="Search YouTube videos"
+            >
+            <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Clear input" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button type="button" class="btn-ai-mood-trigger" id="openAiMoodBtn" title="Search by Mood & Vibe using Cohere AI">
+              <span class="sparkle-rot">✨</span>
+              <span>AI Mood</span>
+            </button>
+            <button type="submit" class="search-submit-btn" id="searchSubmitBtn" title="Search">
+              <span>Search</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <button type="button" class="action-btn" id="lightsToggleBtn" title="Toggle Cinema Lights Dimmer (Key: L)">
+            <svg class="icon-light-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <span class="action-label">Lights</span>
+          </button>
+
+          <button type="button" class="action-btn" id="theaterModeHeaderBtn" title="Theater Mode (Key: T)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="M10 4v16"></path>
+            </svg>
+            <span class="action-label">Theater</span>
+          </button>
+
+          <button type="button" class="action-btn drawer-trigger" id="bookmarksToggleBtn" title="Saved Videos & Watch History">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="action-label">Library</span>
+            <span class="badge" id="libraryCountBadge">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Category Navigation Pill Bar -->
+      <nav class="categories-bar" id="categoriesBar" aria-label="Video categories">
+        <div class="categories-track" id="categoriesTrack">
+          <button class="cat-pill ai-highlight-pill" id="catAiVibeBtn">
+            <span class="sparkle-anim">✨</span> AI Vibe Finder
+          </button>
+          <button class="cat-pill active" data-category="trending">🔥 Trending</button>
+          <button class="cat-pill" data-category="movie trailers 2026">🎬 Movie Trailers</button>
+          <button class="cat-pill" data-category="action blockbusters">🍿 Blockbusters</button>
+          <button class="cat-pill" data-category="cinematic 4k 60fps">⚡ 4K HDR Demos</button>
+          <button class="cat-pill" data-category="top music hits">🎵 Music Hits</button>
+          <button class="cat-pill" data-category="popular gaming playthroughs">🎮 Gaming</button>
+          <button class="cat-pill" data-category="artificial intelligence tech">💻 AI & Tech</button>
+          <button class="cat-pill" data-category="space sci-fi documentaries">🪐 Sci-Fi & Universe</button>
+          <button class="cat-pill" data-category="lofi hip hop relaxing beats">🎧 Lo-Fi Beats</button>
+          <button class="cat-pill" data-category="anime fight scenes amv">⚔️ Anime</button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+      
+      <!-- Video Player Stage (Expands when watching a video) -->
+      <section class="player-stage-section" id="playerStageSection" style="display: none;">
+        <div class="stage-container" id="stageContainer">
+          
+          <!-- Left / Main Column: Video Player & Details & AI Hub -->
+          <div class="player-primary-col">
+            <!-- Dynamic Ambient Glow behind the player -->
+            <div class="ambient-glow" id="ambientGlow"></div>
+
+            <div class="player-wrapper" id="playerWrapper">
+              <!-- Responsive 16:9 Cinema Screen -->
+              <div class="video-screen-container" id="videoScreenContainer">
+                <iframe 
+                  id="mainVideoPlayer" 
+                  src="" 
+                  title="YouTube video player" 
+                  frameborder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  allowfullscreen>
+                </iframe>
+
+                <!-- Player Placeholder (Before any video is loaded) -->
+                <div class="player-empty-placeholder" id="playerPlaceholder">
+                  <div class="placeholder-content">
+                    <div class="pulse-play-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      </svg>
+                    </div>
+                    <h2>Welcome to iZent Cinema</h2>
+                    <p>Search any movie trailer, show, or song to stream directly without leaving the page. Powered by Cohere AI insights.</p>
+                    <div class="placeholder-actions">
+                      <button class="btn-primary" id="startTrendingBtn">
+                        <span>▶ Watch Top Trending Now</span>
+                      </button>
+                      <button class="btn-secondary" id="placeholderAiBtn">
+                        <span>✨ Try AI Mood Search</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Control Bar below Player Screen -->
+              <div class="player-toolbar">
+                <div class="toolbar-left">
+                  <span class="live-status-pill" id="playingBadge" style="display: none;">
+                    <span class="live-dot"></span> NOW PLAYING
+                  </span>
+                  <span class="video-quality-tag">1080p Full HD</span>
+                  <span class="sleep-status-tag" id="sleepTimerBadge" style="display: none;">
+                    ⏱️ <span id="sleepTimerCountdown">30:00</span>
+                  </span>
+                </div>
+                <div class="toolbar-right">
+                  <!-- AI Copilot Button -->
+                  <button type="button" class="tool-btn ai-copilot-btn" id="aiCopilotToggleBtn" title="Cohere AI Video Insights, TL;DR & Chat">
+                    <span class="ai-sparkle-dot">✨</span>
+                    <span>AI Copilot</span>
+                  </button>
+
+                  <!-- Sleep Timer Dropdown -->
+                  <div class="sleep-timer-wrapper">
+                    <button type="button" class="tool-btn" id="sleepTimerBtn" title="Set Sleep Timer (Auto-Pause)">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      <span id="sleepTimerBtnText">Sleep Timer</span>
+                    </button>
+                    <div class="sleep-timer-dropdown" id="sleepTimerDropdown" style="display: none;">
+                      <div class="dropdown-header">⏱️ Auto-Stop Timer</div>
+                      <button type="button" class="sleep-opt" data-mins="15">15 Minutes</button>
+                      <button type="button" class="sleep-opt" data-mins="30">30 Minutes</button>
+                      <button type="button" class="sleep-opt" data-mins="45">45 Minutes</button>
+                      <button type="button" class="sleep-opt" data-mins="60">60 Minutes</button>
+                      <button type="button" class="sleep-opt cancel-opt" data-mins="0">Turn Off</button>
+                    </div>
+                  </div>
+
+                  <button type="button" class="tool-btn" id="ambientToggleBtn" title="Toggle Ambient Backglow">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Glow: On</span>
+                  </button>
+
+                  <button type="button" class="tool-btn" id="theaterModeInlineBtn" title="Toggle Theater Width (Key: T)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    </svg>
+                    <span id="theaterBtnText">Theater</span>
+                  </button>
+
+                  <button type="button" class="tool-btn" id="favoriteVideoBtn" title="Add to Library / Favorites">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span id="favBtnText">Save</span>
+                  </button>
+
+                  <button type="button" class="tool-btn" id="shareVideoBtn" title="Copy Direct Video Link">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                      <polyline points="16 6 12 2 8 6"></polyline>
+                      <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Share</span>
+                  </button>
+
+                  <button type="button" class="tool-btn close-player-btn" id="closePlayerBtn" title="Close player and return to browse">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Close</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- COHERE AI COPILOT HUB PANEL (Expandable) -->
+            <section class="ai-copilot-card" id="aiCopilotCard" style="display: none;">
+              <div class="ai-card-header">
+                <div class="ai-brand-badge">
+                  <span class="ai-sparkle-emoji">✨</span>
+                  <span class="ai-title">Cohere AI Video Copilot</span>
+                  <span class="ai-model-tag">Powered by Cohere</span>
+                </div>
+                <div class="ai-tab-buttons">
+                  <button type="button" class="ai-tab-btn active" data-tab="summary">⚡ Key Takeaways</button>
+                  <button type="button" class="ai-tab-btn" data-tab="chat">💬 Ask AI Companion</button>
+                  <button type="button" class="ai-tab-btn" data-tab="critic">🎭 Critic & Hype Score</button>
+                  <button type="button" class="ai-tab-btn" data-tab="chapters">⏱️ Auto Chapters</button>
+                </div>
+                <button type="button" class="ai-close-btn" id="closeAiCardBtn" title="Close AI Copilot">×</button>
+              </div>
+
+              <div class="ai-card-body">
+                <!-- Tab 1: Summary & Takeaways -->
+                <div class="ai-tab-pane active" id="pane-summary">
+                  <div class="ai-action-bar">
+                    <button type="button" class="btn-ai-action" id="generateSummaryBtn">
+                      <span>✨ Generate Instant AI Summary</span>
+                    </button>
+                    <span class="ai-hint">Cohere analyzes video description, creator context, and key moments</span>
+                  </div>
+                  <div class="ai-result-content" id="aiSummaryContent">
+                    <div class="ai-empty-prompt">
+                      <p>Want a quick spoiler-free breakdown before watching?</p>
+                      <span>Click the button above to generate a concise summary and 3 key takeaways with Cohere AI.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 2: Ask AI Companion Chat -->
+                <div class="ai-tab-pane" id="pane-chat">
+                  <div class="ai-chat-history" id="aiChatHistory">
+                    <div class="ai-chat-msg assistant">
+                      <div class="msg-avatar">🤖</div>
+                      <div class="msg-text">
+                        Hello! I am your Cohere AI companion for this video. Ask me anything—cast info, background lore, explanation of the concepts, or recommendations for similar movies!
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Quick Prompt Suggestion Chips -->
+                  <div class="ai-suggestion-chips" id="aiChatChips">
+                    <button type="button" class="chip-btn" data-prompt="Give me 4 similar movies or videos with this exact tone and aesthetic.">🎬 Similar Videos</button>
+                    <button type="button" class="chip-btn" data-prompt="Explain the backstory and lore behind this video in simple terms.">🧠 Backstory & Lore</button>
+                    <button type="button" class="chip-btn" data-prompt="What are some fun facts, cast info, or interesting trivia about this?">💡 Trivia & Cast</button>
+                    <button type="button" class="chip-btn" data-prompt="Is this worth watching? Give an honest spoiler-free verdict.">🍿 Worth Watching?</button>
+                  </div>
+                  <!-- Chat Input Form -->
+                  <form class="ai-chat-form" id="aiChatForm">
+                    <input type="text" id="aiChatInput" placeholder="Ask Cohere AI about this video..." autocomplete="off">
+                    <button type="submit" id="aiSendBtn" class="ai-send-btn">
+                      <span>Send</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Tab 3: Film Critic & Hype Score -->
+                <div class="ai-tab-pane" id="pane-critic">
+                  <div class="ai-action-bar">
+                    <button type="button" class="btn-ai-action" id="generateCriticBtn">
+                      <span>🎭 Generate AI Critic Review & Hype Score</span>
+                    </button>
+                    <span class="ai-hint">Analyzes cinematic tone, audience reception, and hype index</span>
+                  </div>
+                  <div class="ai-result-content" id="aiCriticContent">
+                    <div class="ai-empty-prompt">
+                      <p>Curious how critics and fans feel?</p>
+                      <span>Click to generate an AI film critic score, visual style breakdown, and hype rating!</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 4: Auto Chapters & Jumpers -->
+                <div class="ai-tab-pane" id="pane-chapters">
+                  <div class="ai-action-bar">
+                    <button type="button" class="btn-ai-action" id="generateChaptersBtn">
+                      <span>⏱️ Extract Clickable Video Chapters</span>
+                    </button>
+                    <span class="ai-hint">Parses timestamps and key sections for instant jumping</span>
+                  </div>
+                  <div class="ai-result-content" id="aiChaptersContent">
+                    <div class="ai-empty-prompt">
+                      <p>No chapters loaded yet.</p>
+                      <span>Click above to extract interactive timestamp markers from this video.</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- Active Video Information Card -->
+            <div class="video-meta-card" id="videoMetaCard" style="display: none;">
+              <h1 class="video-title" id="activeVideoTitle">Select a video to start playing</h1>
+              
+              <div class="meta-row">
+                <div class="channel-info">
+                  <div class="channel-avatar" id="channelAvatar">▶</div>
+                  <div class="channel-details">
+                    <span class="channel-name" id="channelName">Channel Name</span>
+                    <span class="channel-subtext" id="channelSubtext">YouTube Creator</span>
+                  </div>
+                </div>
+
+                <div class="stats-pills">
+                  <span class="stat-pill" id="viewCountPill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span id="viewsText">0 views</span>
+                  </span>
+                  <span class="stat-pill" id="publishedDatePill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="dateText">Recently</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Interactive Video Chapters Bar (populated when chapters exist) -->
+              <div class="chapters-quickbar" id="chaptersQuickbar" style="display: none;">
+                <span class="chapters-quickbar-label">📍 Chapters:</span>
+                <div class="chapters-quickbar-track" id="chaptersQuickbarTrack"></div>
+              </div>
+
+              <!-- Expandable Description Box -->
+              <div class="description-box" id="descriptionBox">
+                <p class="description-text" id="descriptionText">Description will appear here.</p>
+                <button type="button" class="desc-toggle-btn" id="descToggleBtn">Show More</button>
+              </div>
+            </div>
+
+            <!-- AD SLOT: SOLO (Responsive Banner below video player) -->
+            <div class="ad-container ad-solo-wrap" id="adSoloContainer">
+              <div class="ad-label">SPONSORED ADVERTISEMENT</div>
+              <div class="ad-slot-frame">
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9444948713845341"
+                     crossorigin="anonymous"></script>
+                <!-- solo -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-9444948713845341"
+                     data-ad-slot="5680876206"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
+                </script>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Sidebar Ad + Up Next Queue -->
+          <aside class="player-sidebar-col" id="playerSidebarCol">
+            
+            <!-- AD SLOT: SIDEBAR (300x600 fixed skyscraper ad) -->
+            <div class="ad-container ad-sidebar-wrap" id="adSidebarContainer">
+              <div class="ad-label">SPONSORED SIDEBAR</div>
+              <div class="ad-slot-frame ad-sidebar-frame">
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9444948713845341"
+                     crossorigin="anonymous"></script>
+                <!-- sidebar -->
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:300px;height:600px"
+                     data-ad-client="ca-pub-9444948713845341"
+                     data-ad-slot="4825913350"></ins>
+                <script>
+                     try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
+                </script>
+              </div>
+            </div>
+
+            <!-- Up Next / Related Queue -->
+            <div class="up-next-section">
+              <div class="section-title-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                  <line x1="19" y1="5" x2="19" y2="19"></line>
+                </svg>
+                <span>Up Next / Recommended</span>
+              </div>
+              <div class="queue-list" id="sidebarQueueList">
+                <!-- Dynamically populated up-next cards -->
+                <div class="queue-loading-skeleton">
+                  <div class="skeleton-item"></div>
+                  <div class="skeleton-item"></div>
+                  <div class="skeleton-item"></div>
+                </div>
+              </div>
+            </div>
+
+          </aside>
+
+        </div>
+      </section>
+
+      <!-- Discovery & Exploration Video Grid Section -->
+      <section class="catalog-section" id="catalogSection">
+        <div class="section-header-bar">
+          <div class="section-title-group">
+            <h2 class="section-heading" id="catalogHeading">🔥 Trending Worldwide</h2>
+            <p class="section-subtitle" id="catalogSubheading">Watch high-definition movie trailers, viral clips, and music hits in-page</p>
+          </div>
+          <div class="view-controls">
+            <span class="counter-badge" id="resultsCountBadge">18+ videos</span>
+          </div>
+        </div>
+
+        <!-- Video Grid Cards -->
+        <div class="video-grid" id="videoGrid">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="grid-loader" id="gridLoader" style="display: none;">
+          <div class="spinner"></div>
+          <span id="gridLoaderText">Fetching YouTube videos...</span>
+        </div>
+
+        <!-- Load More / Pagination -->
+        <div class="load-more-container" id="loadMoreContainer" style="display: none;">
+          <button type="button" class="btn-load-more" id="loadMoreBtn">
+            <span>Load More Videos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- AD SLOT: SOLOG (Responsive Bottom Ad between sections) -->
+        <div class="ad-container ad-solog-wrap" id="adSologContainer">
+          <div class="ad-label">SPONSORED RECOMMENDATION</div>
+          <div class="ad-slot-frame">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9444948713845341"
+                 crossorigin="anonymous"></script>
+            <!-- solog -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-9444948713845341"
+                 data-ad-slot="8757963709"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
+            </script>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Library & Watch History Drawer (2 Tabs) -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside class="library-drawer" id="libraryDrawer" aria-label="Saved videos and watch history">
+      <div class="drawer-header">
+        <div class="drawer-nav-tabs">
+          <button type="button" class="drawer-tab active" id="tabDrawerSaved" data-tab="saved">
+            <span>❤️ Watch Later</span>
+            <span class="tab-badge" id="drawerSavedCount">0</span>
+          </button>
+          <button type="button" class="drawer-tab" id="tabDrawerHistory" data-tab="history">
+            <span>🕒 History</span>
+            <span class="tab-badge" id="drawerHistoryCount">0</span>
+          </button>
+        </div>
+        <button type="button" class="drawer-close-btn" id="drawerCloseBtn" title="Close drawer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="drawer-content" id="libraryItemsList">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="drawer-footer">
+        <button type="button" class="btn-clear-library" id="clearLibraryBtn">Clear List</button>
+      </div>
+    </aside>
+
+    <!-- COHERE AI SEMANTIC MOOD SEARCH MODAL -->
+    <div class="modal-backdrop" id="aiMoodModal" style="display: none;">
+      <div class="modal-card ai-mood-card">
+        <div class="modal-header">
+          <div class="modal-title-with-badge">
+            <span class="sparkle-anim">✨</span>
+            <h3>Cohere AI Mood & Vibe Search</h3>
+            <span class="ai-tag">Natural Language</span>
+          </div>
+          <button type="button" class="modal-close-btn" id="closeMoodModalBtn">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="mood-intro">Describe what you feel like watching in plain words. Cohere AI will analyze the mood and find the best YouTube videos for you!</p>
+          <form id="aiMoodForm">
+            <div class="mood-input-wrapper">
+              <textarea id="aiMoodInput" rows="3" placeholder="e.g. 'Mind-bending sci-fi thriller trailer with Christopher Nolan vibes and heavy bass' or 'cozy rainy night in Tokyo 4k lofi'"></textarea>
+            </div>
+            
+            <div class="preset-mood-tags">
+              <span class="preset-label">Quick Moods:</span>
+              <button type="button" class="mood-tag" data-vibe="epic cyberpunk synthwave 4k cinematic">🌃 Cyberpunk City</button>
+              <button type="button" class="mood-tag" data-vibe="mind bending deep space mystery trailers interstellar">🌌 Cosmic Mystery</button>
+              <button type="button" class="mood-tag" data-vibe="rainy cozy coffee shop lofi beats for studying">☕ Rainy Coffee Lofi</button>
+              <button type="button" class="mood-tag" data-vibe="high octane formula 1 supercar racing 4k 60fps">🏎️ High Adrenaline</button>
+              <button type="button" class="mood-tag" data-vibe="unreal engine 5 photorealistic nature walk 4k">🌲 Peaceful Nature Walk</button>
+              <button type="button" class="mood-tag" data-vibe="epic anime fight scenes 4k 60fps amv">⚔️ Anime Action</button>
+            </div>
+
+            <div class="mood-actions">
+              <button type="submit" class="btn-primary btn-ai-search" id="submitMoodBtn">
+                <span class="sparkle-anim">✨</span>
+                <span>Search with Cohere AI</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Quick Notification / Toast -->
+    <div class="toast-notification" id="toastNotification" role="alert">
+      <span class="toast-icon">✨</span>
+      <span class="toast-msg" id="toastMsg">Action completed</span>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal-backdrop" id="shortcutsModal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>⚡ Keyboard Shortcuts</h3>
+          <button type="button" class="modal-close-btn" id="closeModalBtn">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcut-item">
+            <kbd>/</kbd>
+            <span>Focus video search bar</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>T</kbd>
+            <span>Toggle Theater Mode</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>L</kbd>
+            <span>Toggle Lights Off / Cinema Dimmer</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>A</kbd>
+            <span>Toggle Cohere AI Copilot Panel</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>Esc</kbd>
+            <span>Close modals, drawers or exit theater</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Footer -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="grad-text">iZENT CINEMA • AI</span>
+          </div>
+          <p class="footer-tagline">Watch unlimited YouTube videos in high-definition without leaving the page. Powered by YouTube Data API v3 and Cohere AI intelligence.</p>
+        </div>
+
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Quick Categories</h4>
+            <ul>
+              <li><a href="#" class="footer-cat-link" data-cat="trending">Trending Now</a></li>
+              <li><a href="#" class="footer-cat-link" data-cat="movie trailers 2026">Movie Trailers</a></li>
+              <li><a href="#" class="footer-cat-link" data-cat="music videos">Music Hits</a></li>
+              <li><a href="#" class="footer-cat-link" data-cat="gaming live">Gaming Streams</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>AI & Features</h4>
+            <ul>
+              <li><a href="#" id="footerAiMoodLink">✨ AI Mood Search</a></li>
+              <li><a href="#" id="footerShortcutsLink">Keyboard Shortcuts</a></li>
+              <li><a href="#" id="footerScrollTop">Back to Top</a></li>
+              <li><a href="#" id="footerOpenLibrary">Saved Library & History</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 iZent Movies & Stream. All video content is streamed via Google YouTube Embed API. AI insights powered by Cohere Command.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Runtime Environment Configuration -->
+  <script src="env-config.js?v=2.0.3"></script>
+
+  <!-- Main Application Script -->
+  <script src="app.js?v=2.0.3"></script>
+</body>
+</html>

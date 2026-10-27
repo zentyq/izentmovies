@@ -1,0 +1,10 @@
+# Environment and secret configuration
+env-config.js
+.env
+.env.*
+*.local
+
+# OS & Editor artifacts
+.DS_Store
+Thumbs.db
+*.log
